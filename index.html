@@ -219,6 +219,11 @@
   var STORAGE_KEY = 'yongsam-interview-answers-v2';
   var WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbytNw69UIfpG5UHnR2lqKEHOZvWFO5diQj3N03cZyW4GDlNVZSNgAsLuLnF2WtHIl111g/exec';
 
+  if (/[?&]reset=1/.test(location.search)) {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    location.replace(location.pathname);
+  }
+
   var answers = {};
   try {
     var raw = localStorage.getItem(STORAGE_KEY);
