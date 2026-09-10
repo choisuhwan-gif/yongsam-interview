@@ -88,7 +88,7 @@
   <div class="topbar-row">
     <div>
       <h1>대표님 인터뷰 답변지</h1>
-      <div class="status" id="statusLine">이 브라우저에 자동 저장됩니다</div>
+      <div class="status" id="statusLine">자동으로 구글 시트에 저장됩니다</div>
     </div>
     <div style="display:flex;gap:8px;">
       <button class="btn" id="toggleResult">결과지 보기</button>
@@ -102,7 +102,7 @@
 
   <div class="intro">
     <strong>용삼식당 릴스 촬영 (9/12 금 17:00) 전에</strong>, 아래 질문 중 편하신 것들에 미리 답을 적어주시면 촬영이 훨씬 수월해집니다.<br>
-    <strong>다 채우지 않으셔도 됩니다.</strong> 입력하시는 대로 이 브라우저에 자동 저장됩니다. 다 쓰시면 위의 <strong>"구글시트용 복사"</strong> 버튼을 눌러서 담당자에게 붙여넣기용으로 보내주세요 (카카오톡 등으로).
+    <strong>다 채우지 않으셔도 됩니다.</strong> 입력하시는 대로 자동으로 구글 시트에 저장되니, 저장 버튼을 따로 누르거나 캡처해서 보내주실 필요 없습니다. (혹시 저장이 안 될 경우를 대비해 위에 <strong>"구글시트용 복사"</strong> 버튼도 남겨뒀습니다.)
   </div>
 
   <div id="formView"></div>
@@ -191,6 +191,7 @@
   ];
 
   var STORAGE_KEY = 'yongsam-interview-answers-v1';
+  var WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbytNw69UIfpG5UHnR2lqKEHOZvWFO5diQj3N03cZyW4GDlNVZSNgAsLuLnF2WtHIl111g/exec';
   var formView = document.getElementById('formView');
   var catNav = document.getElementById('catNav');
   var statusLine = document.getElementById('statusLine');
@@ -225,7 +226,7 @@
       ta.className = 'q-input';
       ta.id = 'q' + n;
       ta.placeholder = '답변을 적어주세요 (건너뛰어도 됩니다)';
-      ta.addEventListener('input', function(){ scheduleSave(); });
+      ta.addEventListener('input', function(){ scheduleSave('q' + n, ta.value); });
       qDiv.appendChild(label);
       qDiv.appendChild(ta);
       section.appendChild(qDiv);
@@ -234,8 +235,10 @@
     formView.appendChild(section);
   });
 
-  // ── 저장 로직 (localStorage) ──
+  // ── 저장 로직 (localStorage 백업 + 구글시트 자동 동기화) ──
   var saveTimer = null;
+  var retryTimer = null;
+  var dirty = {};
 
   function setStatus(text, isErr){
     statusLine.textContent = text;
@@ -257,18 +260,32 @@
     return data;
   }
 
-  function scheduleSave(){
+  function scheduleSave(id, value){
+    dirty[id] = value;
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(flushSave, 500);
+    saveTimer = setTimeout(flushSave, 700);
   }
 
   function flushSave(){
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectAnswers()));
-      setStatus('이 브라우저에 저장됨 · ' + nowTime());
-    } catch (e) {
-      setStatus('저장 실패 — 이 브라우저 저장공간을 확인해주세요', true);
-    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectAnswers())); } catch (e) {}
+
+    var pending = Object.assign({}, dirty);
+    if (Object.keys(pending).length === 0) return;
+
+    var payload = {};
+    Object.keys(pending).forEach(function(id){ payload[id.replace(/^q/, '')] = pending[id]; });
+
+    setStatus('구글시트에 저장 중…');
+    fetch(WEBHOOK_URL, { method: 'POST', body: JSON.stringify({ answers: payload }) })
+      .then(function(){
+        Object.keys(pending).forEach(function(id){ delete dirty[id]; });
+        setStatus('구글시트에 저장됨 · ' + nowTime());
+      })
+      .catch(function(){
+        setStatus('동기화 지연 — 이 화면엔 저장됨, 잠시 후 다시 시도합니다', true);
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(flushSave, 6000);
+      });
   }
 
   function loadSaved(){
@@ -280,7 +297,6 @@
         var el = document.getElementById(id);
         if (el) el.value = data[id];
       });
-      setStatus('이전에 저장된 답변을 불러왔습니다');
     } catch (e) {}
   }
   loadSaved();
