@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대표님 인터뷰 답변지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Geist+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#fcfcfc; --ink:#111111; --ink-soft:#2d2a27; --text-sub:#909090;
+    --acc:#FF3D1E; --rule:#111111; --gray:#CCCCCC; --hover:#F3F3F3;
+    --sans:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+    --mono:'Geist Mono',ui-monospace,'SFMono-Regular',monospace;
+    --track:.18em;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--sans); background:var(--bg); color:var(--ink); font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased; word-break:keep-all; }
+  .page { max-width:760px; margin:0 auto; padding:0 20px 80px; }
+  .mono { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  .eyebrow { font-size:11px; text-transform:uppercase; letter-spacing:var(--track); color:var(--text-sub); font-weight:700; }
+  .acc { color:var(--acc); }
+
+  /* ── 상단 고정 바 ── */
+  .topbar { position:sticky; top:0; z-index:10; background:var(--bg); border-bottom:1px solid var(--rule); padding:16px 20px 12px; margin:0 0 24px; }
+  .topbar-row { max-width:760px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .topbar h1 { font-size:20px; font-weight:900; color:var(--ink-soft); letter-spacing:-.01em; }
+  .status { font-size:11.5px; color:var(--text-sub); margin-top:4px; }
+  .status.err { color:var(--acc); font-weight:500; }
+  .btn { font-family:var(--sans); font-size:12.5px; font-weight:700; background:var(--bg); color:var(--ink); border:1px solid var(--rule); border-radius:0; padding:9px 16px; cursor:pointer; white-space:nowrap; }
+  .btn:hover { background:var(--hover); }
+  .btn.primary { background:var(--ink); color:var(--bg); }
+  .btn.primary:hover { background:var(--ink-soft); }
+  .catnav { max-width:760px; margin:12px auto 0; display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
+  .catnav a { flex:none; font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-sub); border:1px solid var(--rule); padding:4px 9px; text-decoration:none; }
+  .catnav a:hover { background:var(--hover); color:var(--ink); }
+
+  /* ── 안내문 ── */
+  .intro { border-bottom:1px solid var(--rule); padding-bottom:20px; margin-bottom:28px; font-size:13.5px; color:var(--ink); line-height:1.7; }
+  .intro strong { font-weight:700; }
+
+  /* ── 카테고리 ── */
+  .cat { border-bottom:1px solid var(--rule); margin-bottom:28px; scroll-margin-top:120px; }
+  .cat-header { display:flex; align-items:baseline; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--rule); margin-bottom:18px; }
+  .cat-num { font-family:var(--mono); font-weight:700; font-size:26px; color:var(--ink-soft); }
+  .cat-title { font-size:16px; font-weight:700; }
+  .cat-desc { font-size:12px; color:var(--text-sub); margin-left:auto; text-align:right; }
+  .cat-tags.core .cat-title { color:var(--acc); }
+
+  .q { margin-bottom:20px; }
+  .q-label { display:flex; gap:8px; font-size:14px; font-weight:500; line-height:1.55; margin-bottom:8px; }
+  .q-num { font-family:var(--mono); font-size:12px; color:var(--text-sub); flex:none; padding-top:2px; }
+  textarea.q-input {
+    width:100%; min-height:56px; padding:10px 12px; font-family:var(--sans); font-size:16px; line-height:1.6;
+    color:var(--ink); background:var(--bg); border:1px solid var(--rule); border-radius:0; resize:vertical;
+  }
+  textarea.q-input:focus { outline:none; border:2px solid var(--ink); padding:9px 11px; }
+
+  /* ── 결과지 보기 ── */
+  #resultView { display:none; }
+  #resultView.show { display:block; }
+  #formView.hide { display:none; }
+  .result-empty { font-size:13px; color:var(--text-sub); padding:20px 0; }
+  .result-cat { margin-bottom:22px; }
+  .result-cat-title { font-size:12px; font-weight:700; color:var(--text-sub); text-transform:uppercase; letter-spacing:.08em; padding-bottom:8px; border-bottom:1px solid var(--rule); margin-bottom:12px; }
+  .result-q { margin-bottom:14px; }
+  .result-q .rq { font-size:13.5px; font-weight:700; margin-bottom:4px; }
+  .result-q .ra { font-size:14px; white-space:pre-wrap; padding-left:14px; border-left:2px solid var(--rule); }
+  .result-actions { display:flex; gap:8px; margin-bottom:20px; }
+
+  .footer { margin-top:40px; font-size:12px; color:var(--text-sub); display:flex; justify-content:space-between; gap:16px; }
+
+  @media print {
+    .topbar, .catnav, .intro, .result-actions, #formView { display:none !important; }
+    #resultView { display:block !important; }
+    .btn { display:none; }
+  }
+  @media (max-width:600px) {
+    .cat-header { flex-wrap:wrap; }
+    .cat-desc { margin-left:0; text-align:left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <div>
+      <h1>대표님 인터뷰 답변지</h1>
+      <div class="status" id="statusLine">이 브라우저에 자동 저장됩니다</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" id="toggleResult">결과지 보기</button>
+      <button class="btn primary" id="copySheet" title="구글시트 답변 칸에 붙여넣기용">구글시트용 복사</button>
+    </div>
+  </div>
+  <div class="catnav" id="catNav"></div>
+</div>
+
+<div class="page">
+
+  <div class="intro">
+    <strong>용삼식당 릴스 촬영 (9/12 금 17:00) 전에</strong>, 아래 질문 중 편하신 것들에 미리 답을 적어주시면 촬영이 훨씬 수월해집니다.<br>
+    <strong>다 채우지 않으셔도 됩니다.</strong> 입력하시는 대로 이 브라우저에 자동 저장됩니다. 다 쓰시면 위의 <strong>"구글시트용 복사"</strong> 버튼을 눌러서 담당자에게 붙여넣기용으로 보내주세요 (카카오톡 등으로).
+  </div>
+
+  <div id="formView"></div>
+
+  <div id="resultView">
+    <div class="result-actions">
+      <button class="btn" id="printResult">인쇄 / PDF 저장</button>
+    </div>
+    <div id="resultBody"></div>
+  </div>
+
+  <div class="footer">
+    <span>용삼식당 릴스 — 대표님 인터뷰 답변지 · 2026-09-10</span>
+    <span>더용삼 주식회사</span>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var CATS = [
+    {key:'A', title:'도입 — 이 사람은 누구인가', desc:'서사 축 · 정체성 소개'},
+    {key:'B', title:'창업 초기 썰', desc:'스토리텔링 · 실패와 성장'},
+    {key:'C', title:'개인적인 질문', desc:'인간적인 면'},
+    {key:'D', title:'원초적 / 예능형 질문', desc:'가볍게'},
+    {key:'E', title:'진지한 가치관 질문', desc:'직원 · 손님 응대 원칙'},
+    {key:'F', title:'곤란했지만 사실 자랑', desc:'힘든 이야기로 포장된 좋은 소식', core:true},
+    {key:'G', title:'밸런스게임', desc:'둘 중 어느 쪽이신가요?'},
+    {key:'H', title:'마무리 — 훅 / 캐치프레이즈', desc:'반복 멘트 확정용'}
+  ];
+  var QUESTIONS = [
+    [1,'A','지금 대표님은 정확히 어떤 일을 하고 계신가요? (매스커피·용삼식당 둘 다 운영하시는 것에 대해 설명 부탁드립니다)'],
+    [2,'A','원래부터 사업을 하고 싶으셨나요, 아니면 어쩌다 시작하게 되신 건가요?'],
+    [3,'A','처음 시작하신 사업은 무엇이었나요? 그때 나이가 어떻게 되셨나요?'],
+    [4,'A','지금까지 몇 개의 브랜드·매장을 운영해보셨나요?'],
+    [5,'A','용삼식당이라는 이름은 어떻게 짓게 되셨나요?'],
+    [6,'A','커피를 판매하시다가 고깃집(용삼식당)을 시작하신 이유가 궁금합니다.'],
+    [7,'A','홍대 건축학과를 나오셨는데, 왜 사업을 시작하시게 되었나요?'],
+    [8,'A','용삼식당은 어떻게 시작하게 되셨나요? 어디서 영감을 받으셨나요?'],
+    [9,'B','사업을 처음 시작하셨을 때 정말 힘드셨던 순간 하나만 말씀해주시겠어요?'],
+    [10,'B','그때로 돌아간다면 다르게 하고 싶은 일이 있으신가요?'],
+    [11,'B','첫 매장을 여셨을 때, 첫 손님이 기억나시나요?'],
+    [12,'B','사업하시면서 가장 크게 실패하셨던 경험이 있다면요?'],
+    [13,'B','그 실패에서 무엇을 배우셨나요?'],
+    [14,'B','장사를 처음 시작하실 때로 다시 돌아간다면, 절대 안 하실 것 3가지만 꼽아주시겠어요?'],
+    [15,'B','다시 1호점을 시작하신다면, 딱 이것부터 바꾸시겠다는 게 있을까요?'],
+    [16,'C','쉬는 날엔 뭐 하시나요? 진짜 쉬시긴 하시나요?'],
+    [17,'C','가족분들은 대표님이 이렇게 일하시는 걸 어떻게 생각하시나요?'],
+    [18,'C','사업을 하지 않으셨다면 지금 뭘 하고 계셨을 것 같으세요?'],
+    [19,'C','존경하는 분이나 롤모델이 있으신가요?'],
+    [20,'C','지금까지 가장 큰 영감을 받으신 이야기가 있다면 들려주시겠어요?'],
+    [21,'C','요즘 가장 큰 고민이 무엇인가요?'],
+    [22,'C','최근에 가장 뿌듯하셨던 순간이 있다면요?'],
+    [23,'C','살아오시면서 가장 후회되는 결정이 있으시다면요?'],
+    [24,'C','스트레스는 어떻게 푸시나요?'],
+    [25,'C','본인 성격을 한 단어로 표현하신다면요?'],
+    [26,'C','10년 후에는 어떤 모습이실 것 같으세요?'],
+    [27,'C','대표님 인생에서 가장 잘하신 선택을 하나만 꼽으신다면요?'],
+    [28,'C',"대표님에게 '돈'이란 무엇인가요?"],
+    [29,'D','오이 vs 파, 절대 못 드시는 것 하나만 고르신다면요?'],
+    [30,'D','여름에 매장 에어컨 온도는 몇 도가 적정이라고 생각하세요? (직원분들과 온도 때문에 다투신 적 있으세요?)'],
+    [31,'D','회식하실 때 직접 고기를 구우시는 편인가요, 아니면 맡기시는 편인가요?'],
+    [32,'D','본인 요리 실력은 스스로 몇 점을 주시겠어요?'],
+    [33,'D','직원분들 몰래 제일 자주 드시는 메뉴가 있으신가요?'],
+    [34,'E','손님을 응대하실 때 가장 중요하게 생각하시는 가치를 하나만 꼽으신다면요?'],
+    [35,'E','일 잘하는 직원의 조건을 3가지만 말씀해주시겠어요?'],
+    [36,'E','반대로 함께 일하기 어렵다고 느끼시는 직원 유형이 있다면요?'],
+    [37,'E','장사하시면서 절대 타협하지 않으시는 원칙이 있으시다면요?'],
+    [38,'E','장사하시면서 가장 후회했던 결정이 있다면요?'],
+    [39,'E',"대표님이 생각하시는 '장사 잘하는 사람'의 공통점은 무엇인가요?"],
+    [40,'E','장사하는 후배들에게 딱 한 가지 조언을 하신다면요?'],
+    [41,'E','월천(월 순이익 1천만원)을 처음 달성했다면, 제일 먼저 해야 하는 일이 뭘까요?'],
+    [42,'F','줄이 길게 늘어서 있는데 재료가 모자랐던 적이 있으신가요? 그날 어떻게 해결하셨나요?'],
+    [43,'F','재료가 소진돼서 예정보다 일찍 마감하신 적 있으세요? 그날 몇 시에 문을 닫으셨나요?'],
+    [44,'F','대기하시던 손님이 화를 내신 적 있으세요? 그 상황은 결국 어떻게 마무리되셨나요?'],
+    [45,'F','갑자기 단체 손님이 몰려서 정신없으셨던 날, 그날은 어떻게 버티셨나요?'],
+    [46,'F','특정 메뉴가 너무 잘 팔려서 오히려 곤란하셨던 적 있으세요? (품절 관리 등)'],
+    [47,'F','홀에 자리가 없어서 대기 손님을 응대하시기 가장 곤란하셨던 순간이 있다면요?'],
+    [48,'F','직원은 부족한데 손님은 계속 오시는 날, 그럴 때 대표님은 어떻게 하시나요?'],
+    [49,'G','싸가지 없는데 일 잘하는 직원 vs 싸가지는 있는데 일 못하는 직원 — 어느 쪽이신가요?'],
+    [50,'G','매출 1억·순이익 500 vs 매출 7천·순이익 1,500 — 어느 쪽이신가요?'],
+    [51,'G','고집 센 경력 10년 vs 배우려는 신입 1년 — 어느 쪽이신가요?'],
+    [52,'G','맛 최고·서비스 부족 vs 맛 평범·서비스 최고 — 어느 쪽이신가요?'],
+    [53,'G','내가 좋아하는 장사 vs 돈이 되는 장사 — 어느 쪽이신가요?'],
+    [54,'H','마지막으로, 용삼식당 하면 딱 떠오르는 한 마디를 만들어주시겠어요? (예: "냉삼은 용삼식당" 같은 톤)']
+  ];
+
+  var STORAGE_KEY = 'yongsam-interview-answers-v1';
+  var formView = document.getElementById('formView');
+  var catNav = document.getElementById('catNav');
+  var statusLine = document.getElementById('statusLine');
+
+  // ── 폼 렌더 ──
+  CATS.forEach(function(cat){
+    var navLink = document.createElement('a');
+    navLink.href = '#cat-' + cat.key;
+    navLink.textContent = cat.key;
+    catNav.appendChild(navLink);
+
+    var section = document.createElement('div');
+    section.className = 'cat';
+    section.id = 'cat-' + cat.key;
+
+    var header = document.createElement('div');
+    header.className = 'cat-header' + (cat.core ? ' cat-tags core' : '');
+    header.innerHTML =
+      '<span class="cat-num">' + cat.key + '</span>' +
+      '<span class="cat-title">' + cat.title + '</span>' +
+      '<span class="cat-desc">' + cat.desc + '</span>';
+    section.appendChild(header);
+
+    QUESTIONS.filter(function(q){ return q[1] === cat.key; }).forEach(function(q){
+      var n = q[0], text = q[2];
+      var qDiv = document.createElement('div');
+      qDiv.className = 'q';
+      var label = document.createElement('div');
+      label.className = 'q-label';
+      label.innerHTML = '<span class="q-num">' + n + '</span><span>' + text + '</span>';
+      var ta = document.createElement('textarea');
+      ta.className = 'q-input';
+      ta.id = 'q' + n;
+      ta.placeholder = '답변을 적어주세요 (건너뛰어도 됩니다)';
+      ta.addEventListener('input', function(){ scheduleSave(); });
+      qDiv.appendChild(label);
+      qDiv.appendChild(ta);
+      section.appendChild(qDiv);
+    });
+
+    formView.appendChild(section);
+  });
+
+  // ── 저장 로직 (localStorage) ──
+  var saveTimer = null;
+
+  function setStatus(text, isErr){
+    statusLine.textContent = text;
+    statusLine.className = 'status' + (isErr ? ' err' : '');
+  }
+
+  function nowTime(){
+    var d = new Date();
+    function p(x){ return (x < 10 ? '0' : '') + x; }
+    return p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  function collectAnswers(){
+    var data = {};
+    QUESTIONS.forEach(function(q){
+      var el = document.getElementById('q' + q[0]);
+      if (el && el.value.trim() !== '') data['q' + q[0]] = el.value;
+    });
+    return data;
+  }
+
+  function scheduleSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flushSave, 500);
+  }
+
+  function flushSave(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectAnswers()));
+      setStatus('이 브라우저에 저장됨 · ' + nowTime());
+    } catch (e) {
+      setStatus('저장 실패 — 이 브라우저 저장공간을 확인해주세요', true);
+    }
+  }
+
+  function loadSaved(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      Object.keys(data).forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.value = data[id];
+      });
+      setStatus('이전에 저장된 답변을 불러왔습니다');
+    } catch (e) {}
+  }
+  loadSaved();
+
+  // ── 결과지 보기 ──
+  var toggleBtn = document.getElementById('toggleResult');
+  var formEl = document.getElementById('formView');
+  var resultEl = document.getElementById('resultView');
+  var resultBody = document.getElementById('resultBody');
+  var showingResult = false;
+
+  function buildResult(){
+    resultBody.innerHTML = '';
+    var any = false;
+    CATS.forEach(function(cat){
+      var qs = QUESTIONS.filter(function(q){
+        var el = document.getElementById('q' + q[0]);
+        return el && el.value.trim() !== '';
+      }).filter(function(q){ return q[1] === cat.key; });
+      if (qs.length === 0) return;
+      any = true;
+      var catBlock = document.createElement('div');
+      catBlock.className = 'result-cat';
+      catBlock.innerHTML = '<div class="result-cat-title">' + cat.key + ' · ' + cat.title + '</div>';
+      qs.forEach(function(q){
+        var el = document.getElementById('q' + q[0]);
+        var rq = document.createElement('div');
+        rq.className = 'result-q';
+        rq.innerHTML = '<div class="rq">' + q[0] + '. ' + q[2].replace(/</g,'&lt;') + '</div><div class="ra"></div>';
+        rq.querySelector('.ra').textContent = el.value;
+        catBlock.appendChild(rq);
+      });
+      resultBody.appendChild(catBlock);
+    });
+    if (!any) {
+      resultBody.innerHTML = '<div class="result-empty">아직 채워진 답변이 없습니다. 입력 모드에서 답변을 적어주세요.</div>';
+    }
+  }
+
+  toggleBtn.addEventListener('click', function(){
+    showingResult = !showingResult;
+    if (showingResult) {
+      buildResult();
+      formEl.classList.add('hide');
+      resultEl.classList.add('show');
+      toggleBtn.textContent = '입력 화면으로';
+    } else {
+      formEl.classList.remove('hide');
+      resultEl.classList.remove('show');
+      toggleBtn.textContent = '결과지 보기';
+    }
+  });
+
+  document.getElementById('printResult').addEventListener('click', function(){
+    if (!showingResult) { toggleBtn.click(); }
+    window.print();
+  });
+
+  document.getElementById('copySheet').addEventListener('click', function(){
+    var lines = ['번호\t카테고리\t질문\t답변'];
+    QUESTIONS.forEach(function(q){
+      var el = document.getElementById('q' + q[0]);
+      var ans = el ? el.value.replace(/\t/g, ' ').replace(/\n/g, ' / ') : '';
+      lines.push(q[0] + '\t' + q[1] + '\t' + q[2].replace(/\t/g, ' ') + '\t' + ans);
+    });
+    var text = lines.join('\n');
+    navigator.clipboard.writeText(text).then(function(){
+      var btn = document.getElementById('copySheet');
+      var orig = btn.textContent;
+      btn.textContent = '복사됨!';
+      setTimeout(function(){ btn.textContent = orig; }, 1500);
+    }).catch(function(){
+      alert('복사에 실패했습니다. 다시 시도해주세요.');
+    });
+  });
+})();
+</script>
+</body>
+</html>
